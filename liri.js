@@ -49,11 +49,11 @@ function multiWords() {
     return words
 }
 function spotifyIt() {
-    // if (typeof searchTwo !== 'undefined') {
-    //     var combinedSearch = search + "%20" + searchTwo;
-    // } else {
-    //     var combinedSearch = search;
-    // }
+
+    if (search == undefined) {
+        search = 'nin';
+    }
+    console.log(search);
     spotifyApi.search({ type: 'artist', query: search, market: 'US' }, function (err, data) {
         if (!err) {
             for (i = 0; i < 4; i++)
@@ -67,7 +67,9 @@ function twitter() {
     var params = {
         screen_name: search
     };
-
+    if (params.screen_name == undefined) {
+        params.screen_name = 'blank';
+    }
     twitterApi.get('statuses/user_timeline', params, function (error, tweets, response) {
         if (!error) {
 
@@ -83,12 +85,15 @@ function twitter() {
 }
 
 function movie() {
+    if (search == undefined) {
+        search = "it";
+    }
+
     if (typeof searchTwo !== 'undefined') {
         var combinedSearch = search + "%20" + searchTwo;
-    } else {
-        var combinedSearch = search;
     }
-    request(`http://www.omdbapi.com/?t=${combinedSearch}&apikey=Trilogy&plot=short`, function (error, body) {
+
+    request(`http://www.omdbapi.com/?t=${combinedSearch || search}&apikey=Trilogy&plot=short`, function (error, body) {
         if (!error) {
             var newBody = JSON.parse(body.body);
             console.log(newBody.Title);
@@ -98,6 +103,7 @@ function movie() {
             console.log("Plot: " + newBody.Plot);
             console.log("Rotten Tomatoes: " + newBody.Ratings[1].Value);
             console.log("Language: " + newBody.Language);
+
         } else {
             console.log("ombd isn't working")
         }
