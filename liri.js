@@ -5,9 +5,10 @@ var keys = require("./keys.js");
 var request = require("request");
 var Twitter = require('twitter');
 var spotify = require('node-spotify-api');
+var fs = require('file-system');
 
 
-var spotifyApi = new spotify({ id: "3ce319795f614c0caa58924811652d00", secret: "fd893bfc3c2648978afa6628fae11c0c" });
+var spotifyApi = new spotify(keys.spotify);
 var twitterApi = new Twitter(keys.twitter);
 
 
@@ -29,16 +30,34 @@ switch (argumentOne) {
     case "omdb-movie":
         movie();
         break;
+    case "read-this":
+        readText();
+        break;
 
     default:
         console.log("liri does not understand your command");
+        readText();
 };
-
+function multiWords() {
+    var words = ""
+    for (var i = 3; i < process.argv.length; i++) {
+        // if (words == "") {
+        //     words = words + process.argv[i] + " "
+        // }else{
+        words = words + process.argv[i] + " "
+    }
+    return words
+}
 function spotifyIt() {
-
+    // if (typeof searchTwo !== 'undefined') {
+    //     var combinedSearch = search + "%20" + searchTwo;
+    // } else {
+    //     var combinedSearch = search;
+    // }
     spotifyApi.search({ type: 'artist', query: search, market: 'US' }, function (err, data) {
         if (!err) {
-            console.log(data);
+            for (i = 0; i < 4; i++)
+                console.log(data.artists.items[i]);
         } else return;
 
     });
@@ -64,10 +83,14 @@ function twitter() {
 }
 
 function movie() {
-
-    request(`http://www.omdbapi.com/?t=${search}&apikey=Trilogy&plot=short`, function (error, response, body) {
+    if (typeof searchTwo !== 'undefined') {
+        var combinedSearch = search + "%20" + searchTwo;
+    } else {
+        var combinedSearch = search;
+    }
+    request(`http://www.omdbapi.com/?t=${combinedSearch}&apikey=Trilogy&plot=short`, function (error, body) {
         if (!error) {
-            var newBody = JSON.parse(body);
+            var newBody = JSON.parse(body.body);
             console.log(newBody.Title);
             console.log("The movie's release date is: " + newBody.Year);
             console.log("The movie's rating is: " + newBody.Rated);
@@ -75,6 +98,32 @@ function movie() {
             console.log("Plot: " + newBody.Plot);
             console.log("Rotten Tomatoes: " + newBody.Ratings[1].Value);
             console.log("Language: " + newBody.Language);
+        } else {
+            console.log("ombd isn't working")
         }
     });
-}
+
+};
+function readText() {
+
+    fs.readFile('random.txt', 'utf8', function (err, data) {
+
+        if (err) throw err;
+
+        var dataArr = data.split(',');
+
+        console.log(dataArr);
+
+
+        if (dataArr[0] === "spotify-this") {
+            search = dataArr[1];
+            spotifyIt();
+
+        } else {
+            console.log("Invalid Command! Please try again?")
+        }
+
+    });
+
+
+};
